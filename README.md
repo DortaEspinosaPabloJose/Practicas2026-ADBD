@@ -1,330 +1,275 @@
-# Ejercicios de ADBD práctica 1\.
+#Ejercicios de ADBD práctica 3\.
+##Pablo José Dorta Espinosa
 
-#### Pablo José Dorta Espinosa
+## 1\. Entidades y atributos
 
-En este documento se realiza cada ejercicio de la práctica, separado tarea donde primero se presenta el enunciado y luego un bloque de código con el comando y la salida de este copiados y pegados tal y como estaba en la terminal a la hora de realizar el ejercicio, a veces con espacios verticales añadidos para claridad. 
+#### 1.1. Vivero
 
-1. Creación de la base de datos  
-   1. Crear una base de datos llamada biblioteca.
+**Descripción**: Representa cada establecimiento o vivero perteneciente a la empresa. El modelo permite identificarlo y almacenar su posición geográfica, además del atributo Zonas.  
+Atributos:
 
-```sql
-postgres=# CREATE DATABASE biblioteca;
-CREATE DATABASE
-```
+1. id\_vivero  
+   1. Identificador único del vivero.  
+2. Latitud  
+   1. Coordenada geográfica de latitud correspondiente al vivero.  
+3. Longitud  
+   1. Coordenada geográfica de longitud correspondiente al vivero.  
+4. Zonas  
+   1. Atributo definido en el modelo para representar las zonas del vivero.
 
-2. Creación de usuarios  
-   1. Crear dos usuarios:  
-      1. admin\_biblio con permisos de administrador sobre la base de datos.  
-      2. usuario\_biblio con permisos solo de lectura.  
-   2. Crear un rol llamado lectores con permisos únicamente de consulta sobre todas las tablas de la base de datos.  
-   3. Asignar el usuario usuario\_biblio a este rol.  
-   4. Consultar las tablas del sistema para listar todos los usuarios creados (pg\_roles).  
-   5. Cambiar la contraseña del usuario usuario\_biblio.  
-   6. Configurar permisos de tal forma que el usuario usuario\_biblio no pueda eliminar registros en ninguna tabla.
+**Ejemplo:**  
+id\_vivero \= VIV001  
+Latitud \= 28.4636  
+Longitud \= \-16.2518  
+Zonas \= "Exterior, Almacén"
 
-```sql
-postgres=# CREATE USER admin_biblio;
-CREATE ROLE
-postgres=# ALTER DATABASE biblioteca OWNER TO admin_biblio; 
-ALTER DATABASE
-postgres=# GRANT ALL PRIVILEGES ON DATABASE biblioteca TO admin_biblio;
-GRANT
-postgres=#GRANT ALL ON SCHEMA public TO admin_biblio; 
-GRANT
+#### 1.2. Producto
 
-postgres=# CREATE ROLE lectores;
-CREATE ROLE
-postgres=# GRANT pg_read_all_data TO lectores;
-GRANT ROLE
-postgres=# GRANT CONNECT ON DATABASE biblioteca TO lectores;
-GRANT
+**Descripción:** Representa cada producto comercializado por Tajinaste S.A.  
+Atributos:
 
-postgres=# SELECT rolname FROM pg_roles WHERE rolname NOT LIKE 'pg_%';
-    rolname
-----------------
- postgres
- mydb_admin
- admin_biblio
- usuario_biblio
- lectores
+1. id\_producto  
+   * Identificador único del producto. Está subrayado en el modelo.  
+2. Precio  
+   * Precio asociado al producto.
 
-postgres=# ALTER USER usuario_biblio WITH PASSWORD 'nueva_clave_123';
-ALTER ROLE
-```
+**Ejemplo:**  
+id\_producto \= PROD025  
+Precio \= 14.95
 
-De aquí en adelante, se accede a la base de datos biblioteca con el usuario admin\_biblio:
+#### 1.3. Tarea
 
-```sql
-postgres=# ALTER USER admin_biblio WITH PASSWORD 'clave_admin_123';
-ALTER ROLE
-postgres=# exit
-usuario@ubuntu:~$ psql -U admin_biblio -h localhost -d biblioteca
-```
+**Descripción:** Representa una tarea realizada por un empleado en el contexto de un vivero.  
+Atributos:
 
-3. Creación de tablas  
-   1. Crear las siguientes tablas con sus respectivas claves primarias:  
-      1. autores(id\_autor, nombre, nacionalidad)  
-      2. libros(id\_libro, titulo, año\_publicacion, id\_autor)  
-      3. prestamos(id\_prestamo, id\_libro, fecha\_prestamo, fecha\_devolucion, usuario\_prestatario)  
-   2. Establecer las claves foráneas correspondientes.
+1. id\_tarea  
+   * Identificador único de la tarea.  
+2. Inicio  
+   * Fecha de inicio de la tarea.  
+3. Fin  
+   * Fecha de finalización de la tarea.  
+4. Puesto  
+   * Puesto en el que se desarrolla la tarea.
 
-```sql
-biblioteca=# CREATE TABLE autores (
-    id_autor     SERIAL PRIMARY KEY,
-    nombre       VARCHAR(100) NOT NULL,
-    nacionalidad VARCHAR(50)
-);
-CREATE TABLE
+**Ejemplo:**  
+id\_tarea \= TAR0105  
+Inicio \= 2026-03-01  
+Fin \= 2026-03-15  
+Puesto \= "Jardinero"
 
-biblioteca=# CREATE TABLE libros (
-    id_libro        SERIAL PRIMARY KEY,
-    titulo          VARCHAR(200) NOT NULL,
-    año_publicacion INT,
-    id_autor        INT NOT NULL REFERENCES autores(id_autor)
-);
-CREATE TABLE
+#### 1.4. Empleado
 
-biblioteca=# CREATE TABLE prestamos (
-    id_prestamo         SERIAL PRIMARY KEY,
-    id_libro            INT NOT NULL REFERENCES libros(id_libro) ON DELETE CASCADE,
-    fecha_prestamo      DATE NOT NULL,
-    fecha_devolucion    DATE,
-    usuario_prestatario VARCHAR(100) NOT NULL
-);
-CREATE TABLE
-```
+**Descripción:** Representa a cada empleado de Tajinaste S.A.  
+Atributos:
 
-4. Inserción de datos  
-   1. Insertar al menos 5 autores, 8 libros y 5 préstamos de ejemplo.
+1. id\_empleado  
+   * Identificador único del empleado.
 
-```sql
-biblioteca=# INSERT INTO autores (nombre, nacionalidad) VALUES
-('Gabriel García Márquez', 'Colombiana'),
-('Miguel de Cervantes', 'Española'),
-('Jorge Luis Borges', 'Argentina'),
-('Isabel Allende', 'Chilena'),
-('Benito Pérez Galdós', 'Española');
-INSERT 0 5
-biblioteca=# SELECT * FROM autores;
- id_autor |         nombre         | nacionalidad
-----------+------------------------+--------------
-        1 | Gabriel García Márquez | Colombiana
-        2 | Miguel de Cervantes    | Española
-        3 | Jorge Luis Borges      | Argentina
-        4 | Isabel Allende         | Chilena
-        5 | Benito Pérez Galdós    | Española
-(5 rows)
+      2\. 	Nombre
 
-biblioteca=# INSERT INTO libros (titulo, año_publicacion, id_autor) VALUES
-('Cien años de soledad', 1967, 1),
-('El amor en los tiempos del cólera', 1985, 1),
-('Don Quijote de la Mancha', 1605, 2),
-('Novelas ejemplares', 1613, 2),
-('Ficciones', 1944, 3),
-('El Aleph', 1949, 3),
-('La casa de los espíritus', 1982, 4),
-('Fortunata y Jacinta', 1887, 5);
-INSERT 0 8
-biblioteca=# SELECT * FROM libros;
- id_libro |              titulo               | año_publicacion | id_autor
-----------+-----------------------------------+-----------------+----------
-        1 | Cien años de soledad              |            1967 |        1
-        2 | El amor en los tiempos del cólera |            1985 |        1
-        3 | Don Quijote de la Mancha          |            1605 |        2
-        4 | Novelas ejemplares                |            1613 |        2
-        5 | Ficciones                         |            1944 |        3
-        6 | El Aleph                          |            1949 |        3
-        7 | La casa de los espíritus          |            1982 |        4
-        8 | Fortunata y Jacinta               |            1887 |        5
-(8 rows)
+* Nombre del empleado.
 
-biblioteca=# INSERT INTO prestamos (id_libro, fecha_prestamo, fecha_devolucion, usuario_prestatario) VALUES
-(1, '2026-09-01', NULL,         'Ana López'),
-(3, '2026-09-03', '2026-09-10', 'Carlos Pérez'),
-(1, '2026-08-20', '2026-09-01', 'Carlos Pérez'),
-(5, '2026-09-10', NULL,         'Lucía Gómez'),
-(7, '2026-09-15', '2026-09-22', 'Ana López'),
-(1, '2026-07-01', '2026-07-15', 'Lucía Gómez'),
-(3, '2026-08-01', '2026-08-12', 'Ana López'),
-(6, '2026-09-20', NULL,         'Pedro Ruiz');
-INSERT 0 8
-biblioteca=# SELECT * FROM prestamos;
- id_prestamo | id_libro | fecha_prestamo | fecha_devolucion | usuario_prestatario
--------------+----------+----------------+------------------+---------------------
-           1 |        1 | 2026-09-01     |                  | Ana López
-           2 |        3 | 2026-09-03     | 2026-09-10       | Carlos Pérez
-           3 |        1 | 2026-08-20     | 2026-09-01       | Carlos Pérez
-           4 |        5 | 2026-09-10     |                  | Lucía Gómez
-           5 |        7 | 2026-09-15     | 2026-09-22       | Ana López
-           6 |        1 | 2026-07-01     | 2026-07-15       | Lucía Gómez
-           7 |        3 | 2026-08-01     | 2026-08-12       | Ana López
-           8 |        6 | 2026-09-20     |                  | Pedro Ruiz
-(8 rows)
-```
+**Ejemplo:**  
+id\_empleado \= EMP017  
+Nombre \= "Ana García"
 
-5. Consultas básicas  
-   1. Listar todos los libros con su autor correspondiente.  
-   2. Mostrar los préstamos que aún no tienen fecha de devolución.  
-   3. Obtener los autores que tienen más de un libro registrado.
+#### 1.5. Cliente
 
-```sql
-biblioteca=# SELECT nombre,titulo FROM autores NATURAL JOIN libros;
-         nombre         |              titulo
-------------------------+-----------------------------------
- Gabriel García Márquez | Cien años de soledad
- Gabriel García Márquez | El amor en los tiempos del cólera
- Miguel de Cervantes    | Don Quijote de la Mancha
- Miguel de Cervantes    | Novelas ejemplares
- Jorge Luis Borges      | Ficciones
- Jorge Luis Borges      | El Aleph
- Isabel Allende         | La casa de los espíritus
- Benito Pérez Galdós    | Fortunata y Jacinta
+**Descripción:** Representa a cada cliente de Tajinaste S.A.  
+Atributos:
 
-biblioteca=# SELECT id_prestamo,titulo FROM libros NATURAL JOIN prestamos WHERE fecha_devolucion IS NULL;
- id_prestamo |        titulo
--------------+----------------------
-           1 | Cien años de soledad
-           4 | Ficciones
-           8 | El Aleph
-(3 rows)
+3. id\_cliente  
+   * Identificador único del cliente. Está subrayado en el modelo.  
+4. Nombre  
+   * Nombre del cliente.
 
-biblioteca=# SELECT a.nombre, COUNT(*) AS num_libros
-FROM autores a JOIN libros l ON l.id_autor = a.id_autor
-GROUP BY a.id_autor, a.nombre
-HAVING COUNT(*) > 1;
-         nombre         | num_libros
-------------------------+------------
- Jorge Luis Borges      |          2
- Miguel de Cervantes    |          2
- Gabriel García Márquez |          2
-(3 rows)
-```
+**Ejemplo:**  
+id\_cliente \= CLI1008  
+Nombre \= "María Rodríguez"
 
-6. Consultas con agregación  
-   1. Calcular el número total de préstamos realizados.  
-   2. Obtener el número de libros prestados por cada usuario.
+#### 1.6. Tajinaste\_Plus
 
-```sql
-biblioteca=> SELECT COUNT(*) AS total_prestamos FROM prestamos;
- total_prestamos
------------------
-               8
+**Descripción:** Representa la pertenencia de un cliente al programa de fidelización Tajinaste Plus. Contiene la información específica asociada a la pertenencia al programa, como la fecha de alta y la bonificación.  
+Atributos:
 
-biblioteca=> SELECT usuario_prestatario, COUNT(*) AS total_prestamos
-FROM prestamos
-GROUP BY usuario_prestatario;
- usuario_prestatario | total_prestamos
----------------------+-----------------
- Pedro Ruiz          |               1
- Lucía Gómez         |               2
- Carlos Pérez        |               2
- Ana López           |               3
-(4 rows)
-```
+5. fecha\_alta  
+   * Fecha en la que el cliente se incorpora al programa Tajinaste Plus.  
+6. Bonificación  
+   * Bonificación asociada al cliente dentro del programa.
 
-7. Modificación de datos  
-   1. Actualizar la fecha de devolución de un préstamo pendiente.  
-   2. Eliminar un libro y comprobar el efecto en la tabla de préstamos (usar ON DELETE CASCADE o justificar el comportamiento).
+**Ejemplo:**  
+fecha\_alta \= 2026-01-10  
+Bonificación \= 10%
 
-```sql
-biblioteca=> UPDATE prestamos SET fecha_devolucion = CURRENT_DATE WHERE id_prestamo = 1;
-UPDATE 1
-biblioteca=> SELECT * FROM prestamos WHERE id_prestamo = 1;
- id_prestamo | id_libro | fecha_prestamo | fecha_devolucion | usuario_prestatario
--------------+----------+----------------+------------------+---------------------
-           1 |        1 | 2026-09-01     | 2026-09-28       | Ana López
-(1 row)
+## 
 
-biblioteca=> SELECT * FROM prestamos WHERE id_libro = 3;
- id_prestamo | id_libro | fecha_prestamo | fecha_devolucion | usuario_prestatario
--------------+----------+----------------+------------------+---------------------
-           2 |        3 | 2026-09-03     | 2026-09-10       | Carlos Pérez
-           7 |        3 | 2026-08-01     | 2026-08-12       | Ana López
-(2 rows)
+## 2\. Relaciones
 
-DELETE FROM libros WHERE id_libro = 3;
-DELETE 1
+#### 2.1. Tiene
 
-SELECT * FROM prestamos WHERE id_libro = 3;
- id_prestamo | id_libro | fecha_prestamo | fecha_devolucion | usuario_prestatario
--------------+----------+----------------+------------------+---------------------
-(0 rows)
-```
+**Descripción:** Representa la asignación de productos a los viveros y permite controlar la cantidad disponible de cada producto en cada vivero.
 
-Se observa que la selección pasa de tener 2 filas a 0 filas porque la clave *prestamos.id\_libro* está definida con *ON DELETE CASCADE*, así que al eliminar el libro se borran automáticamente sus préstamos.
+**Entidades relacionadas:**
 
-8. Creación de vistas  
-   1. Crear una vista llamada vista\_libros\_prestados que muestre: título del libro, autor y nombre del prestatario.  
-   2. Conceder permisos de consulta sobre esta vista únicamente a usuario\_biblio.
+* Vivero  
+* Producto
 
-```sql
-biblioteca=> CREATE VIEW vista_libros_prestados AS
-SELECT l.titulo,
-       a.nombre AS autor,
-       p.usuario_prestatario AS prestatario
-FROM prestamos p
-JOIN libros l  ON l.id_libro = p.id_libro
-JOIN autores a ON a.id_autor = l.id_autor;
-CREATE VIEW
+**Atributos de la relación:**
 
-biblioteca=> GRANT SELECT ON vista_libros_prestados TO usuario_biblio;
-GRANT
-```
+1. Cantidad  
+   * Cantidad disponible del producto en el vivero.  
+   * Debe representar una cantidad no negativa.
 
-9. Funciones y consultas avanzadas  
-   1. Crear una función que reciba el nombre de un autor y devuelva todos los libros escritos por él.  
-   2. Crear una consulta que devuelva los tres libros más prestados.
+**Cardinalidad:**
 
-```sql
-biblioteca=>  CREATE OR REPLACE FUNCTION libros_por_autor(p_nombre VARCHAR)
-RETURNS TABLE (titulo VARCHAR) AS $$
-    SELECT titulo
-    FROM libros
-    NATURAL JOIN autores
-    WHERE nombre ILIKE '%' || p_nombre || '%';
-$$ LANGUAGE sql;
-CREATE FUNCTION
-biblioteca=> SELECT libros_por_autor('Jorge Luis Borges');
- libros_por_autor
-------------------
- Ficciones
- El Aleph
-(2 rows)
+* **Vivero — Tiene — Producto: 1:N**  
+* Un vivero puede tener asignados varios productos.  
+* Cada producto se relaciona con un vivero según la cardinalidad indicada en el modelo.
 
-biblioteca=> SELECT titulo, COUNT(*) AS veces_prestado
-FROM prestamos NATURAL JOIN libros
-GROUP BY id_libro, titulo
-ORDER BY veces_prestado DESC
-LIMIT 3;
-        titulo        | veces_prestado
-----------------------+----------------
- Cien años de soledad |              3
- Ficciones            |              1
- El Aleph             |              1
-(3 rows)
-```
+**Ejemplo:**  
+ Vivero \= VIV001  
+ Producto \= PROD025  
+ Cantidad \= 50 unidades
 
-10. Exportación e importación de datos  
-    1. Exportar el contenido de la tabla libros a un archivo CSV.  
-    2. Importar datos adicionales de autores desde un archivo CSV externo.
+#### 2.2. Requiere
 
-```sql
-biblioteca=> \copy libros TO '~/libros.csv' WITH (FORMAT csv, HEADER)
-COPY 7
+**Descripción:** Representa la relación entre un vivero y las tareas que se realizan en él. Permite indicar la zona concreta del vivero donde se desarrolla la tarea y almacenar su georreferenciación.
 
-biblioteca=> \copy autores (nombre, nacionalidad) FROM '~/autores_nuevos.csv' WITH (FORMAT csv, HEADER)
-COPY 3
-biblioteca=> SELECT * from autores;
- id_autor |         nombre         | nacionalidad
-----------+------------------------+--------------
-        1 | Gabriel García Márquez | Colombiana
-        2 | Miguel de Cervantes    | Española
-        3 | Jorge Luis Borges      | Argentina
-        4 | Isabel Allende         | Chilena
-        5 | Benito Pérez Galdós    | Española
-        6 | Julio Cortázar         | Argentina
-        7 | Mario Vargas Llosa     | Peruana
-        8 | Rosalía de Castro      | Española
-(8 rows)
-```
+**Entidades relacionadas:**
 
+* Vivero  
+* Tarea
+
+**Atributos de la relación:**
+
+1. Zona  
+   * Zona del vivero en la que se realiza la tarea.  
+2. Latitud  
+   * Coordenada geográfica de latitud correspondiente a la zona.  
+3. Longitud  
+   * Coordenada geográfica de longitud correspondiente a la zona.
+
+**Cardinalidad:**
+
+* **Vivero — Requiere — Tarea: 1:N**  
+* Un vivero puede requerir o tener asociadas varias tareas.  
+* Cada tarea queda asociada a un vivero.
+
+**Ejemplo:**  
+ Vivero \= VIV001  
+ Tarea \= TAR0105  
+ Zona \= "Exterior"  
+ Latitud \= 28.4638  
+ Longitud \= \-16.2521
+
+#### 2.3. Ocupa
+
+**Descripción:** Representa la relación entre los empleados y las tareas que realizan, permitiendo determinar qué empleado ocupa el puesto asociado a una tarea.
+
+**Entidades relacionadas:**
+
+* Empleado  
+* Tarea
+
+**Cardinalidad:**
+
+* **Empleado — Ocupa — Tarea: 1:1**  
+* Un empleado ocupa una tarea según la cardinalidad indicada en el modelo.  
+* Cada tarea queda asociada a un empleado.
+
+Esta relación permite vincular las tareas realizadas con el empleado responsable de llevarlas a cabo.
+
+**Ejemplo:**  
+ Empleado \= EMP017  
+ Tarea \= TAR0105
+
+#### 2.4. Vende a
+
+**Descripción:** Representa la relación entre los empleados y los clientes pertenecientes al programa Tajinaste Plus. Permite reflejar la actividad comercial de los empleados sobre estos clientes.
+
+**Entidades relacionadas:**
+
+* Empleado  
+* Tajinaste\_Plus
+
+**Cardinalidad:**
+
+* **Empleado — Vende a — Tajinaste\_Plus: 1:N**  
+* Un empleado puede vender a varios clientes pertenecientes a Tajinaste Plus.  
+* La relación permite asociar la actividad comercial de los empleados con los clientes del programa.
+
+**Ejemplo:**  
+ Empleado \= EMP017  
+ Tajinaste\_Plus \= cliente dado de alta el 2026-01-10
+
+#### 2.5. Se da de alta
+
+**Descripción:** Representa la incorporación de un cliente al programa de fidelización Tajinaste Plus.
+
+**Entidades relacionadas:**
+
+* Cliente  
+* Tajinaste\_Plus
+
+**Cardinalidad:**
+
+* **Cliente — Se da de alta — Tajinaste\_Plus: 1:1**  
+* Un cliente se corresponde con una única pertenencia a Tajinaste Plus.  
+* Una ocurrencia de Tajinaste\_Plus corresponde a un único cliente.
+
+La relación permite distinguir a los clientes que pertenecen al programa de fidelización y asociarlos con los datos específicos del programa, como la fecha de alta y la bonificación.
+
+**Ejemplo:**  
+ Cliente \= CLI1008  
+ fecha\_alta \= 2026-01-10  
+ Bonificación \= 10%
+
+#### 2.6. Hace pedidos
+
+**Descripción:** Representa la relación mediante la cual se registran los pedidos realizados por los clientes sobre los productos de la empresa.
+
+**Entidades relacionadas:**
+
+* Cliente  
+* Producto
+
+**Cardinalidad:**
+
+* **Cliente — Hace pedidos — Producto: 1:N**  
+* Un cliente puede realizar pedidos de diferentes productos.  
+* La relación permite asociar los clientes con los productos que solicitan.
+
+**Ejemplo:**  
+ Cliente \= CLI1008  
+ Producto \= PROD025
+
+### 3\. Restricciones semánticas
+
+#### 3.1. Identificadores únicos
+
+Los atributos identificadores deben ser únicos:
+
+* `id_vivero` identifica de forma única a cada vivero.  
+* `id_producto` identifica de forma única a cada producto.  
+* `id_tarea` identifica de forma única a cada tarea.  
+* `id_empleado` identifica de forma única a cada empleado.  
+* `id_cliente` identifica de forma única a cada cliente.
+
+#### 3.2. Cantidad de productos
+
+El atributo **Cantidad** de la relación `Tiene` debe ser un valor numérico igual o superior a cero.
+
+#### 3.3. Precio de los productos
+
+El atributo **Precio** debe ser un valor numérico no negativo.
+
+#### 3.4. Coordenadas geográficas
+
+Los atributos Latitud y Longitud, tanto del vivero como de la zona, deben contener valores correspondientes a coordenadas geográficas válidas.
+
+* La latitud debe encontrarse entre \-90 y 90\.  
+* La longitud debe encontrarse entre \-180 y 180\.
+
+#### 3.5. Fechas de las tareas
+
+En cada Tarea, la fecha de Inicio debe ser anterior o igual a la fecha de Fin.
