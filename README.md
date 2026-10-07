@@ -9,13 +9,13 @@
 Atributos:
 
 1. id\_vivero  
-   1. Identificador único del vivero.  
+   * Identificador único del vivero.  
 2. Latitud  
-   1. Coordenada geográfica de latitud correspondiente al vivero.  
+   * Coordenada geográfica de latitud correspondiente al vivero.  
 3. Longitud  
-   1. Coordenada geográfica de longitud correspondiente al vivero.  
+   * Coordenada geográfica de longitud correspondiente al vivero.  
 4. Zonas  
-   1. Atributo definido en el modelo para representar las zonas del vivero.
+   * Atributo definido en el modelo para representar las zonas del vivero.
 
 **Ejemplo:**  
 id\_vivero \= VIV001  
