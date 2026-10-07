@@ -1,5 +1,5 @@
-#Ejercicios de ADBD práctica 3\.
-##Pablo José Dorta Espinosa
+# Ejercicios de ADBD práctica 3\.
+## Pablo José Dorta Espinosa
 
 ## 1\. Entidades y atributos
 
